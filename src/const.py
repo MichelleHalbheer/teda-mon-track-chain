@@ -10,6 +10,7 @@ import os
 dir_src = os.path.dirname(__file__)
 dir_root = os.path.dirname(dir_src)
 dir_data = os.path.join(dir_root, 'data')
+dir_plots = os.path.join(dir_root, 'plots')
 
 
 ### ------------------------------ ###
@@ -25,7 +26,7 @@ sigma_tilt_rad = sigma_tilt * rho_deg
 
 num_sensors = 100 # Number of sensors in track chain
 num_points = num_sensors + 1 # Number of measurement points
-dist = 1.2 # [m] nominal distance between any two sensors
+dist_tot = 120 # [m] nominal distance between any two sensors
 
 num_reps = int(1e6) # Number of repetitions for Monte Carlo simulation
 
