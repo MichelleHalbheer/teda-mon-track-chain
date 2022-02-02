@@ -1,6 +1,5 @@
 # Program to calculate a preadjustment for a traverse to simulate the precision of the TrackChain
 
-from tkinter.messagebox import NO
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -29,35 +28,65 @@ def main():
             std_free_emp, std_fixed_emp = monte_carlo(sigma_dist=sigma_dist, sigma_tilt=sensor_std, num_sensors=num_sensors)
 
             # Safe the values into the dictionary
-
             std_free_dict[(num_sensors, sigma_dist, 'default')] = std_free
             std_fixed_dict[(num_sensors, sigma_dist, 'default')] = std_fixed
 
             std_free_dict[(num_sensors, sigma_dist, 'empirical')] = std_free_emp
             std_fixed_dict[(num_sensors, sigma_dist, 'empirical')] = std_fixed_emp
 
-            plt.figure()
+            fig, axs = plt.subplots(2, 1, figsize=(6,9))
             plt.suptitle('Standardabweichung im Verlauf der TrackChain')
-            plt.title(f'Distanz: {dist_tot}, Anzahl Sensoren: {num_sensors}\nDistanz zw. Sensoren:{dist_tot / num_sensors}, $\sigma_d=${sigma_dist}')
-            plt.plot(
+            # plt.suptitle('Standardabweichung im Verlauf der TrackChain')
+            # plt.title(f'Distanz: {dist_tot}, Anzahl Sensoren: {num_sensors}\nDistanz zw. Sensoren:{dist_tot / num_sensors}, $\sigma_d=${sigma_dist}', pad=20)
+
+            axs[0].set_title(rf'Theoretische Standardabweichung für Tilt $\sigma_\theta$={const.sigma_tilt}°')
+            axs[0].plot(
                 np.arange(num_sensors + 1),
                 std_free,
                 label='Einseitig angeschlossen',
                 marker='o', 
                 markevery=num_sensors//25
             )
-            plt.plot(
+            axs[0].plot(
                 np.arange(num_sensors + 1),
                 std_fixed,
                 label='Beidseitig angeschlossen',
                 marker='o',
                 markevery=num_sensors//25
             )
-            plt.xlabel('Anzahl Punkte')
-            plt.ylabel('Standardabweichung [mm]')
-            plt.legend()
-            plt.savefig(os.path.join(dir_plots, 'plot_test.png'))
+            axs[0].set_xlabel('Anzahl Punkte')
+            axs[0].set_ylabel('Standardabweichung [mm]')
+            axs[0].legend()
+
+            axs[1].set_title(rf'Empirische Standardabweichung für Tilt $\sigma_\theta$={sensor_std:.3f}°')
+            axs[1].plot(
+                np.arange(num_sensors + 1),
+                std_free_emp,
+                label='Einseitig angeschlossen',
+                marker='o', 
+                markevery=num_sensors//25
+            )
+            axs[1].plot(
+                np.arange(num_sensors + 1),
+                std_fixed_emp,
+                label='Beidseitig angeschlossen',
+                marker='o',
+                markevery=num_sensors//25
+            )
+            axs[1].set_xlabel('Anzahl Punkte')
+            axs[1].set_ylabel('Standardabweichung [mm]')
+            axs[1].legend()
+            plt.figtext(0.5, 0.01, f'Distanz: {dist_tot}, Anzahl Sensoren: {num_sensors}\nDistanz zw. Sensoren:{dist_tot / num_sensors}, $\sigma_d=${sigma_dist}', wrap=True, horizontalalignment='left', fontsize=12)
+            
+            plt.savefig(os.path.join(dir_plots, f'n{num_sensors}_sd{sigma_dist}.png'), bbox_inches='tight')
             plt.close()
+            
+    fig, axs = plt.subplots(2, 1, figsize=(6, 10))
+    plt.suptitle('Standardabweichung im Verlauf der TrackChain')
+    for std_free_key, std_free_val, std_fixed_key, std_fixed_val in zip(std_free_dict.items(), std_fixed_dict.items()):
+
+        axs[0].plot(np.arange(0, const.num_sensors + 1, const.num_sensors + 1 // std_free_key[1]))
+
 
 def monte_carlo(sigma_dist=const.sigma_dist, sigma_tilt=const.sigma_tilt, num_sensors=const.num_sensors, nominal_dist=None):
     '''
